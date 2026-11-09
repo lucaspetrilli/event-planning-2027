@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2027 Event Planning</title>
+<style>
+  :root {
+    --bg: #f3f5fa; --surface: #ffffff; --soft: #f7f8fa; --border: #e2e6ee;
+    --text: #1b2433; --muted: #5d6778; --accent: #2f5bff; --free: #1f8a5b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 14px 16px 48px; }
+  button, input, select { font: inherit; }
+
+  /* ===== Header ===== */
+  .hero { background: #14275f; color: #fff; border-radius: 16px; padding: 18px 22px 16px; }
+  .hero-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #9fb3ea; }
+  .hero h1 { margin: 2px 0 0; font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; }
+  .hero .tag { margin: 2px 0 0; color: #b8c6f0; font-size: 13px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; background: rgba(255,255,255,.1); border-radius: 10px; }
+  .seg button { height: 32px; padding: 0 14px; border: 0; background: transparent; color: #d5defa; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .seg button:hover { color: #fff; }
+  .seg button[aria-pressed="true"] { background: #fff; color: #14275f; }
+  .ctl { height: 32px; padding: 0 12px; border: 1px solid rgba(255,255,255,.22); background: transparent; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .ctl:hover { background: rgba(255,255,255,.1); }
+  .ctl[aria-pressed="true"] { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.5); }
+  select.ctl option { color: #1b2433; }
+  input.ctl { width: 170px; cursor: text; background: rgba(255,255,255,.07); }
+  input.ctl::placeholder { color: rgba(255,255,255,.55); }
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.14); }
+  .filters .label { font-size: 12px; color: #9fb3ea; margin-right: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 400px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid rgba(255,255,255,.18); background: transparent; color: #e3e9fb; border-radius: 999px; font-size: 12.5px; cursor: pointer; }
+  .chip:hover { background: rgba(255,255,255,.1); }
+  .chip[aria-pressed="true"] { background: #fff; color: #14275f; border-color: #fff; font-weight: 600; }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip .n { color: #9fb3ea; font-size: 12px; }
+  .chip[aria-pressed="true"] .n { color: #4a5a8f; }
+  .chip.clear { border-style: dashed; color: #b8c6f0; }
+
+  /* ===== KPIs ===== */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 14px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .kpi .l { color: var(--muted); font-size: 13px; flex-basis: 100%; }
+  .kpi .v { font-size: 24px; font-weight: 700; line-height: 1.1; }
+  .kpi .s { font-size: 13px; color: var(--muted); }
+  .kpi.g .v { color: #2f7d3a; } .kpi.p .v { color: #7c3aed; }
+
+  /* ===== Carga ===== */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; }
+  .panel-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .panel-title span { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .load { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; height: 86px; }
+  .load .col { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; font-size: 11px; color: var(--muted); }
+  .load .bar { width: 100%; background: #9db4f5; border-radius: 4px 4px 0 0; min-height: 2px; }
+  .load .free .bar { background: var(--free); }
+  .load .n { font-weight: 700; color: var(--text); font-size: 12px; }
+
+  /* ===== Eventos (cartões) ===== */
+  .item { background: var(--surface); border: 1px solid var(--border); border-left-width: 6px; border-radius: 8px; padding: 6px 9px; }
+  .item .nm { font-weight: 600; font-size: 13px; line-height: 1.3; }
+  .item .meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .item .camp { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .item .warn { color: #b45309; font-weight: 700; }
+  .item .note { font-size: 11.5px; color: #8a5a00; margin-top: 2px; }
+  .list { display: flex; flex-direction: column; gap: 6px; }
+
+  .qgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; align-items: start; }
+  .qcol { background: var(--soft); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+  .qhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid var(--accent); }
+  .qhead h2 { margin: 0; font-size: 20px; }
+  .cnt { color: var(--muted); font-size: 12.5px; }
+  .msub { margin: 12px 0 6px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; display: flex; justify-content: space-between; }
+
+  .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+  .mcard { background: var(--soft); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+  .mhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .mhead h3 { margin: 0; font-size: 16px; }
+  .badge { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: #e8efff; color: #1636b8; font-weight: 700; }
+  .badge.free { background: #dff3e8; color: #17653f; margin-right: 4px; }
+  .cap { height: 5px; background: var(--border); border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+  .cap div { height: 100%; background: var(--accent); }
+  .empty { color: var(--muted); font-style: italic; font-size: 13px; }
+
+  /* ===== Calendário ===== */
+  .quarter { margin-top: 22px; }
+  .quarter:first-child { margin-top: 0; }
+  .month { margin-bottom: 20px; }
+  .month-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .month-head h3 { margin: 0; font-size: 16px; }
+  .undated { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; padding: 6px 8px; background: var(--soft); border: 1px dashed var(--border); border-radius: 8px; }
+  .undated .label { font-size: 12px; color: var(--muted); margin-right: 4px; }
+  .tg { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #fff; }
+  .cal { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+  .dow, .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .dow div { background: var(--soft); padding: 4px 8px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .week { border-top: 1px solid var(--border); }
+  .week:first-of-type { border-top: 0; }
+  .cell { border-left: 1px solid var(--border); padding: 3px 6px; font-size: 12px; color: var(--muted); min-height: 24px; }
+  .cell:first-child { border-left: 0; }
+  .cell.out { background: var(--soft); }
+  .cell.we { background: #fbfbfd; }
+  .bar-ev { margin: 2px 3px; padding: 3px 6px; border-radius: 4px; color: #fff; font-size: 11.5px; line-height: 1.25; overflow: hidden; z-index: 1; min-width: 0; }
+  .bar-ev .ev-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .bar-ev .ev-camp { margin-top: 2px; padding-top: 2px; border-top: 1px solid rgba(255,255,255,.35); font-size: 10px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .95; }
+  .bar-ev.cl { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+  .bar-ev.cr { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
+  .cc { font-weight: 600; }
+  .wn { color: #fde68a; font-weight: 700; }
+
+  /* ===== TBD ===== */
+  .tbd { margin-top: 26px; }
+  .tbd h2 { margin: 0; font-size: 20px; }
+  .tbd-head { display: flex; align-items: baseline; gap: 10px; padding-bottom: 6px; border-bottom: 2px solid #7c3aed; }
+  .tbd .sub { color: var(--muted); margin: 6px 0 10px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 8px; }
+  .hidden { display: none; }
+  footer { margin-top: 40px; padding-top: 10px; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">LATAM Event Strategy</div>
+        <h1>2027 Event Planning</h1>
+        <p class="tag">Visibilidade de capacidade, conflitos e espaços livres</p>
+      </div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Visualização">
+          <button type="button" id="v-quarter" aria-pressed="true">Trimestre</button>
+          <button type="button" id="v-months" aria-pressed="false">Meses</button>
+          <button type="button" id="v-cal" aria-pressed="false">Calendário</button>
+        </div>
+        <button type="button" class="ctl" id="tbd-toggle" aria-pressed="false">Mostrar TBD</button>
+      </div>
+    </div>
+    <div class="filters">
+      <select class="ctl" id="country" aria-label="Filtrar por país"></select>
+      <input class="ctl" id="search" type="search" placeholder="Buscar evento" aria-label="Buscar evento" maxlength="80">
+      <span class="label" title="A cor identifica a campanha. O número indica a quantidade conforme os filtros.">Campanhas · clique para filtrar</span>
+      <div class="chips" id="legend"></div>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="panel">
+    <div class="panel-title">Carga por mês <span>· em verde, os 3 meses com mais espaço livre (bons candidatos para os TBD)</span></div>
+    <div class="load" id="load"></div>
+  </div>
+
+  <main id="main"></main>
+
+  <section class="tbd hidden" id="tbd">
+    <div class="tbd-head"><h2>TBD · sem data definida</h2><span class="cnt" id="tbd-count"></span></div>
+    <p class="sub">Ficam fora do calendário até receberem data. Para encaixar, preencha <code>start</code>/<code>end</code> (ou só <code>month</code>) na lista <code>EVENTS</code> deste arquivo.</p>
+    <div class="cards" id="tbd-cards"></div>
+  </section>
+
+  <footer>Made with IBM Bob</footer>
+</div>
+
+<script>
+/* =====================================================================
+   DADOS (edite aqui)
+     name      Nome do evento
+     campaign  Campanha (coluna B). Vazio = "Sem campanha"
+     country   MX | BR | AR | LA | "" (coluna D)
+     start,end Datas "AAAA-MM-DD". Omita se ainda não houver data.
+     month     1-12. Use quando só o mês é conhecido.
+   Para tirar um evento do TBD: preencha start/end (ou month).
+   ===================================================================== */
+const EVENTS = [
+  // Q1
+  { name: "LAAC Mexico (Golf) New From Global", campaign: "AI operation Model", country: "MX", start: "2027-01-13", end: "2027-01-18" },
+  { name: "Finops Exchange Mexico", campaign: "FinOps for AI", country: "MX", month: 2 },
+  { name: "Z Modernization", campaign: "Z and LinuxOne Simplification - Next Gen Chip", country: "MX", month: 2 },
+  { name: "Finops Exchange Brasil", campaign: "FinOps for AI", country: "BR", start: "2027-03-18", end: "2027-03-18" },
+  { name: "Innovation Summit or Summit by Forbes", campaign: "AI operation Model", country: "AR", month: 3 },
+  { name: "SW Horizon Roadshow (Rio de Janeiro)", campaign: "AI operation Model and Finops for AI", country: "BR", month: 3 },
+  { name: "SW Horizon Roadshow (Belo Horizonte)", campaign: "AI operation Model and Finops for AI", country: "BR", month: 3 },
+  { name: "Monterrey Digital Hub Mexico", campaign: "Cross Campaigns", country: "MX" },
+
+  // Q2
+  { name: "IT Forum Trancoso", campaign: "Cross Campaigns", country: "BR", start: "2027-04-21", end: "2027-04-25" },
+  { name: "SW Horizon Roadshow (Porto Alegre)", campaign: "AI operation Model and Finops for AI", country: "BR", month: 4 },
+  { name: "SW Horizon Roadshow (BSB or Curitiba)", campaign: "AI operation Model and Finops for AI", country: "BR", month: 4 },
+  { name: "Ignite Palo-Alto", campaign: "Stand-alone Tactic", country: "BR", start: "2027-05-12", end: "2027-05-12" },
+  { name: "Ignite Palo-Alto", campaign: "Stand-alone Tactic", country: "MX", month: 5 },
+  { name: "IDC CIO Summit LATAM", campaign: "AI operation Model", country: "MX", start: "2027-05-20", end: "2027-05-20" },
+  { name: "LA Data Briefing with MIT", campaign: "AI operation Model", country: "LA", month: 5 },
+  { name: "CDAO Mexico", campaign: "Streamhouse", country: "MX", start: "2027-05-26", end: "2027-05-26" },
+  { name: "CXO Series (TBD Exame)", campaign: "AI operation Model", country: "MX", month: 5 },
+  { name: "IBM 100 Mexico", campaign: "AI operation Model", country: "MX", month: 5 },
+  { name: "Z Modernization", campaign: "Z and LinuxOne Simplification - Next Gen Chip", country: "BR", month: 5 },
+  { name: "Gartner Data & Analytics São Paulo", campaign: "AI operation Model", country: "BR", start: "2027-06-02", end: "2027-06-03" },
+  { name: "Revolution Banking AR", campaign: "AI operation Model", country: "AR" },
+  { name: "UNLOCK BR", campaign: "AI operation Model", country: "BR" },
+
+  // Q3
+  { name: "Z Modernization", campaign: "Z and LinuxOne Simplification - Next Gen Chip", country: "AR", month: 7 },
+  { name: "SAP NOW AI Tour Mexico", campaign: "Stand-alone Tactic", country: "MX", start: "2027-08-12", end: "2027-08-12" },
+  { name: "IT Forum Praia Do Forte", campaign: "Cross Campaigns", country: "BR", start: "2027-08-11", end: "2027-08-15" },
+  { name: "SAP NOW AI Tour Brasil", campaign: "Stand-alone Tactic", country: "BR", start: "2027-08-18", end: "2027-08-19" },
+  { name: "Febraban Tech", campaign: "AI operation Model", country: "BR", start: "2027-08-24", end: "2027-08-26" },
+  { name: "UNLOCK MX", campaign: "AI operation Model", country: "MX", month: 8 },
+  { name: "AI & Data Leaders", campaign: "Streamhouse", country: "BR", month: 8 },
+  { name: "CXO Series by Forbes", campaign: "AI operation Model", country: "AR", month: 8 },
+  { name: "SAP NOW AI Tour Argentina", campaign: "Stand-alone Tactic", country: "AR", start: "2027-09-01", end: "2027-09-01" },
+  { name: "Gartner CIO and IT Executive Conference", campaign: "AI operation Model and Finops for AI", country: "BR", start: "2027-09-21", end: "2027-09-23" },
+  { name: "US Open - Data Briefing", campaign: "AI operation Model", country: "LA", month: 9 },
+  { name: "US Open - Automation Briefing", campaign: "FinOps for AI", country: "LA", month: 9 },
+  { name: "UNLOCK AR", campaign: "AI operation Model", country: "AR", month: 9 },
+  { name: "Infra Briefing (Z–LinuxOne) Montpelier", campaign: "Z and LinuxOne Simplification", country: "LA", month: 9 },
+  { name: "Beyond FEBRABAN TECH: What's Next for AI-Powered Banking?", campaign: "Cross - AI operation Model", country: "BR" },
+
+  // Q4
+  { name: "Expojud", campaign: "AI operation Model", country: "BR", month: 10 },
+  { name: "BBDW", campaign: "AI operation Model", country: "BR", month: 10 },
+  { name: "Government IT 2027: New Regulations, Cybersecurity and AI Transformation", campaign: "Cross Campaigns", country: "", month: 10 },
+
+  // Quartil TBD
+  { name: "AI & Data Leaders", campaign: "Streamhouse", country: "MX" },
+  { name: "Mexico Government Industry Event (With IDC or Secretaría de Economía)", campaign: "Cross Campaigns", country: "MX" },
+  { name: "Finops Series Mexico", campaign: "FinOps for AI", country: "MX" },
+  { name: "Finops Series Brasil", campaign: "FinOps for AI", country: "BR" },
+  { name: "IBM BOB Camp - In-Company (IBM Proprietary or with GSI)", campaign: "Agentic Control Plane", country: "" },
+  { name: "Zstack & LinuxONE Series", campaign: "Z and LinuxOne Simplification", country: "LA" },
+  { name: "Beyond Cloud Complexity: Simplify, Automate & Secure (wInforma TechTarget)", campaign: "Identity Based Security", country: "" }
+];
+
+/* Cores por campanha. Campanha nova sem cor aqui recebe cor neutra. */
+const CAMPAIGN_COLORS = {
+  "AI operation Model": "#2563a8",
+  "AI operation Model and Finops for AI": "#5b4bb7",
+  "Cross - AI operation Model": "#0e7490",
+  "FinOps for AI": "#1f8a5b",
+  "Cross Campaigns": "#b45309",
+  "Streamhouse": "#c0392b",
+  "Stand-alone Tactic": "#5b6470",
+  "Identity Based Security": "#8e3b8e",
+  "Z and LinuxOne Simplification": "#8a6d00",
+  "Z and LinuxOne Simplification - Next Gen Chip": "#c2410c",
+  "Agentic Control Plane": "#be185d",
+  "Sem campanha": "#374151"
+};
+const FALLBACK_COLOR = "#374151";
+
+const COUNTRIES = {
+  MX: { flag: "🇲🇽", label: "México" },
+  BR: { flag: "🇧🇷", label: "Brasil" },
+  AR: { flag: "🇦🇷", label: "Argentina" },
+  LA: { flag: "🌎", label: "América Latina" },
+  "": { flag: "❔", label: "Não informado" }
+};
+
+/* ===================================================================== */
+const YEAR = 2027;
+const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const MON_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const DOW = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const NO_CAMPAIGN = "Sem campanha";
+
+const state = { view: "quarter", country: "all", search: "", campaigns: new Set(), showTbd: false };
+
+const colorOf = c => CAMPAIGN_COLORS[c] || FALLBACK_COLOR;
+const countryOf = c => COUNTRIES[c] || { flag: "🏳️", label: c };
+const norm = s => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const parseDate = s => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const fmt = d => `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+const $ = id => document.getElementById(id);
+
+function el(tag, attrs = {}, ...children) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v;
+    else if (k === "style") n.style.cssText = v;
+    else n.setAttribute(k, v);
+  }
+  for (const c of children) n.append(c);
+  return n;
+}
+
+/* Normaliza eventos */
+const evs = EVENTS.map((e, i) => {
+  const start = e.start ? parseDate(e.start) : null;
+  const end = e.end ? parseDate(e.end) : start;
+  const month = start ? start.getUTCMonth() + 1 : (e.month || null);
+  const dateQ = month ? Math.ceil(month / 3) : null;
+  return {
+    id: i, name: e.name, campaign: (e.campaign || "").trim() || NO_CAMPAIGN, country: e.country || "",
+    start, end, month, dated: !!start, placed: !!month, dateQ, sheetQ: e.sheetQ, note: e.note || "",
+    mismatch: !!month && typeof e.sheetQ === "number" && e.sheetQ !== dateQ
+  };
+});
+
+function dateLabel(e) {
+  if (e.dated) return e.start.getTime() === e.end.getTime() ? fmt(e.start) : `${fmt(e.start)} a ${fmt(e.end)}`;
+  if (e.month) return `${MONTHS[e.month - 1]} · dia a definir`;
+  return "TBD";
+}
+function tooltip(e) {
+  const l = [e.name, `Campanha: ${e.campaign}`, `País: ${countryOf(e.country).label}`, `Data: ${dateLabel(e)}`];
+  if (e.mismatch) l.push(`Atenção: quartil na planilha Q${e.sheetQ}, pela data Q${e.dateQ}`);
+  if (e.note) l.push(`Obs.: ${e.note}`);
+  return l.join("\n");
+}
+const sortEvents = (a, b) =>
+  (a.month || 99) - (b.month || 99) ||
+  (a.dated === b.dated ? 0 : a.dated ? -1 : 1) ||
+  (a.dated && b.dated ? a.start - b.start : 0) ||
+  a.name.localeCompare(b.name);
+
+/* ---------- Filtros ---------- */
+function baseList() {  // país + busca (usado também nos contadores da legenda)
+  const q = norm(state.search.trim());
+  return evs.filter(e =>
+    (state.country === "all" || (e.country || "none") === state.country) &&
+    (!q || norm(e.name).includes(q) || norm(e.campaign).includes(q)));
+}
+const withCampaign = list => state.campaigns.size ? list.filter(e => state.campaigns.has(e.campaign)) : list;
+
+/* ---------- Header: legenda e KPIs ---------- */
+function buildLegend(base) {
+  const wrap = $("legend");
+  wrap.replaceChildren();
+  const counts = new Map();
+  evs.forEach(e => { if (!counts.has(e.campaign)) counts.set(e.campaign, 0); });
+  base.forEach(e => counts.set(e.campaign, counts.get(e.campaign) + 1));
+  [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).forEach(([c, n]) => {
+    const b = el("button", { class: "chip", type: "button", "aria-pressed": String(state.campaigns.has(c)) },
+      el("span", { class: "dot", style: `background:${colorOf(c)}` }), c, el("span", { class: "n" }, String(n)));
+    b.addEventListener("click", () => { state.campaigns.has(c) ? state.campaigns.delete(c) : state.campaigns.add(c); render(); });
+    wrap.append(b);
+  });
+  if (state.campaigns.size) {
+    const x = el("button", { class: "chip clear", type: "button", "aria-pressed": "false" }, "Limpar filtro");
+    x.addEventListener("click", () => { state.campaigns.clear(); render(); });
+    wrap.append(x);
+  }
+}
+function buildKpis(list) {
+  const placed = list.filter(e => e.placed).length;
+  const kp = (cls, l, v, s) => el("div", { class: `kpi ${cls}` }, el("div", { class: "l" }, l), el("div", { class: "v" }, String(v)), el("div", { class: "s" }, s));
+  $("kpis").replaceChildren(
+    kp("", "Portfólio", list.length, "eventos"),
+    kp("g", "Posicionados", placed, "com mês/data"),
+    kp("p", "Backlog", list.length - placed, "TBD"),
+    kp("", "Campanhas", new Set(list.map(e => e.campaign)).size, "ativas"));
+}
+
+/* ---------- Carga por mês ---------- */
+function monthCounts(placed) { return MONTHS.map((_, i) => placed.filter(e => e.month === i + 1).length); }
+function freeMonths(counts) {
+  return new Set(counts.map((n, i) => [n, i]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).slice(0, 3).map(x => x[1]));
+}
+function buildLoad(counts) {
+  const wrap = $("load");
+  wrap.replaceChildren();
+  const max = Math.max(1, ...counts), free = freeMonths(counts);
+  counts.forEach((n, i) => wrap.append(
+    el("div", { class: `col${free.has(i) ? " free" : ""}`, title: `${MONTHS[i]}: ${n} evento(s)` },
+      el("span", { class: "n" }, String(n)),
+      el("div", { class: "bar", style: `height:${Math.round((n / max) * 52)}px` }),
+      MON_SHORT[i])));
+}
+
+/* ---------- Cartão de evento ---------- */
+function eventItem(e) {
+  const info = countryOf(e.country);
+  const it = el("div", { class: "item", style: `border-left-color:${colorOf(e.campaign)}`, title: tooltip(e) },
+    el("div", { class: "nm" }, e.name),
+    el("div", { class: "meta" }, `${info.flag} ${e.country || info.label} · ${dateLabel(e)}`));
+  it.append(el("div", { class: "camp" }, e.campaign));
+  if (e.mismatch) it.append(el("div", { class: "note" }, `⚠ Planilha: Q${e.sheetQ}; pela data: Q${e.dateQ}`));
+  if (e.note) it.append(el("div", { class: "note" }, e.note));
+  return it;
+}
+
+/* ---------- Visão Trimestre ---------- */
+function viewQuarter(placed) {
+  const grid = el("div", { class: "qgrid" });
+  [1, 2, 3, 4].forEach(q => {
+    const inQ = placed.filter(e => e.dateQ === q).sort(sortEvents);
+    const col = el("section", { class: "qcol" },
+      el("div", { class: "qhead" }, el("h2", {}, `Q${q}`), el("span", { class: "cnt" }, `${inQ.length} evento(s)`)));
+    [q * 3 - 2, q * 3 - 1, q * 3].forEach(m => {
+      const inM = inQ.filter(e => e.month === m);
+      col.append(el("div", { class: "msub" }, el("span", {}, MONTHS[m - 1]), el("span", {}, String(inM.length))));
+      const list = el("div", { class: "list" });
+      if (!inM.length) list.append(el("div", { class: "empty" }, "Sem eventos"));
+      inM.forEach(e => list.append(eventItem(e)));
+      col.append(list);
+    });
+    grid.append(col);
+  });
+  return grid;
+}
+
+/* ---------- Visão Meses ---------- */
+function viewMonths(placed) {
+  const counts = monthCounts(placed), free = freeMonths(counts), max = Math.max(1, ...counts);
+  const grid = el("div", { class: "mgrid" });
+  MONTHS.forEach((name, i) => {
+    const inM = placed.filter(e => e.month === i + 1).sort(sortEvents);
+    const head = el("div", { class: "mhead" }, el("h3", {}, name));
+    const right = el("span", {});
+    if (free.has(i)) right.append(el("span", { class: "badge free" }, "Espaço livre"));
+    right.append(el("span", { class: "badge" }, String(inM.length)));
+    head.append(right);
+    const card = el("section", { class: "mcard" }, head,
+      el("div", { class: "cap" }, el("div", { style: `width:${Math.round((counts[i] / max) * 100)}%` })));
+    const list = el("div", { class: "list" });
+    if (!inM.length) list.append(el("div", { class: "empty" }, "Sem eventos"));
+    inM.forEach(e => list.append(eventItem(e)));
+    card.append(list);
+    grid.append(card);
+  });
+  return grid;
+}
+
+/* ---------- Visão Calendário ---------- */
+function tagFor(e) {
+  return el("span", { class: "tg", style: `background:${colorOf(e.campaign)}`, title: tooltip(e) },
+    `${countryOf(e.country).flag} ${e.country || ""} ${e.mismatch ? "⚠ " : ""}${e.name} · ${e.campaign}`);
+}
+function calMonth(m, placed) {
+  const first = new Date(Date.UTC(YEAR, m - 1, 1));
+  const lead = first.getUTCDay();
+  const daysIn = new Date(Date.UTC(YEAR, m, 0)).getUTCDate();
+  const weeks = Math.ceil((lead + daysIn) / 7);
+  const ms = first.getTime(), me = Date.UTC(YEAR, m - 1, daysIn);
+
+  const dated = placed.filter(e => e.dated && e.start.getTime() <= me && e.end.getTime() >= ms);
+  const monthOnly = placed.filter(e => !e.dated && e.month === m);
+
+  const box = el("div", { class: "month" },
+    el("div", { class: "month-head" }, el("h3", {}, `${MONTHS[m - 1]} ${YEAR}`), el("span", { class: "cnt" }, `${dated.length + monthOnly.length} evento(s)`)));
+  if (monthOnly.length) {
+    const u = el("div", { class: "undated" }, el("span", { class: "label" }, "Dia a definir:"));
+    monthOnly.forEach(e => u.append(tagFor(e)));
+    box.append(u);
+  }
+
+  const cal = el("div", { class: "cal" });
+  const dow = el("div", { class: "dow" });
+  DOW.forEach(d => dow.append(el("div", {}, d)));
+  cal.append(dow);
+
+  const segs = dated.map(e => ({
+    e, sPos: lead + (e.start.getTime() < ms ? 1 : e.start.getUTCDate()) - 1,
+    ePos: lead + (e.end.getTime() > me ? daysIn : e.end.getUTCDate()) - 1,
+    contBefore: e.start.getTime() < ms, contAfter: e.end.getTime() > me
+  })).sort((a, b) => a.sPos - b.sPos || (b.ePos - b.sPos) - (a.ePos - a.sPos) || a.e.name.localeCompare(b.e.name));
+
+  for (let w = 0; w < weeks; w++) {
+    const wStart = w * 7, wEnd = wStart + 6;
+    const wSegs = segs.filter(s => s.sPos <= wEnd && s.ePos >= wStart).map(s => ({
+      ...s, c1: Math.max(s.sPos, wStart) - wStart, c2: Math.min(s.ePos, wEnd) - wStart,
+      cl: s.sPos < wStart || s.contBefore, cr: s.ePos > wEnd || s.contAfter
+    }));
+    const laneEnds = [];
+    wSegs.forEach(s => {
+      let lane = laneEnds.findIndex(end => end < s.c1);
+      if (lane === -1) { lane = laneEnds.length; laneEnds.push(-1); }
+      laneEnds[lane] = s.c2; s.lane = lane;
+    });
+    const lanes = Math.max(1, laneEnds.length);
+    const week = el("div", { class: "week", style: `grid-template-rows: 24px repeat(${lanes}, auto)` });
+    for (let i = 0; i < 7; i++) {
+      const day = wStart + i - lead + 1, inMonth = day >= 1 && day <= daysIn;
+      week.append(el("div", { class: `cell${inMonth ? "" : " out"}${(i === 0 || i === 6) && inMonth ? " we" : ""}`,
+        style: `grid-column:${i + 1};grid-row:1 / span ${lanes + 1}` }, inMonth ? String(day) : ""));
+    }
+    wSegs.forEach(s => {
+      const bar = el("div", { class: `bar-ev${s.cl ? " cl" : ""}${s.cr ? " cr" : ""}`,
+        style: `grid-column:${s.c1 + 1} / ${s.c2 + 2};grid-row:${s.lane + 2};background:${colorOf(s.e.campaign)}`, title: tooltip(s.e) });
+      const nm = el("div", { class: "ev-name" }, el("span", { class: "cc" }, `${countryOf(s.e.country).flag} ${s.e.country || ""} `));
+      if (s.e.mismatch) nm.append(el("span", { class: "wn" }, "⚠ "));
+      nm.append(s.e.name);
+      bar.append(nm, el("div", { class: "ev-camp" }, s.e.campaign));
+      week.append(bar);
+    });
+    cal.append(week);
+  }
+  box.append(cal);
+  return box;
+}
+function viewCalendar(placed) {
+  const wrap = el("div", {});
+  [1, 2, 3, 4].forEach(q => {
+    const months = [q * 3 - 2, q * 3 - 1, q * 3];
+    const total = placed.filter(e => e.dateQ === q).length;
+    const sec = el("section", { class: "quarter" },
+      el("div", { class: "qhead" }, el("h2", {}, `Q${q}`), el("span", { class: "cnt" }, `${MONTHS[months[0] - 1]} a ${MONTHS[months[2] - 1]} · ${total} evento(s)`)));
+    months.forEach(m => sec.append(calMonth(m, placed)));
+    wrap.append(sec);
+  });
+  return wrap;
+}
+
+/* ---------- TBD ---------- */
+function buildTbd(tbd) {
+  $("tbd").classList.toggle("hidden", !state.showTbd);
+  $("tbd-count").textContent = `${tbd.length} evento(s)`;
+  const cards = $("tbd-cards");
+  cards.replaceChildren();
+  if (!tbd.length) cards.append(el("div", { class: "empty" }, "Nenhum evento em TBD com os filtros atuais."));
+  tbd.forEach(e => {
+    const info = countryOf(e.country);
+    const it = el("div", { class: "item", style: `border-left-color:${colorOf(e.campaign)}` },
+      el("div", { class: "nm" }, e.name),
+      el("div", { class: "meta" }, `${info.flag} ${info.label}`),
+      el("div", { class: "camp" }, e.campaign));
+    if (e.note) it.append(el("div", { class: "note" }, e.note));
+    cards.append(it);
+  });
+}
+
+/* ---------- Render ---------- */
+function render() {
+  const base = baseList();
+  const list = withCampaign(base);
+  const placed = list.filter(e => e.placed), tbd = list.filter(e => !e.placed);
+
+  buildLegend(base);
+  buildKpis(list);
+  buildLoad(monthCounts(placed));
+
+  const views = { quarter: viewQuarter, months: viewMonths, cal: viewCalendar };
+  $("main").replaceChildren(views[state.view](placed));
+  buildTbd(tbd);
+
+  $("v-quarter").setAttribute("aria-pressed", String(state.view === "quarter"));
+  $("v-months").setAttribute("aria-pressed", String(state.view === "months"));
+  $("v-cal").setAttribute("aria-pressed", String(state.view === "cal"));
+  $("tbd-toggle").setAttribute("aria-pressed", String(state.showTbd));
+  $("tbd-toggle").textContent = state.showTbd ? "Ocultar TBD" : "Mostrar TBD";
+}
+
+/* ---------- Controles do header (ligados uma única vez) ---------- */
+(function init() {
+  const sel = $("country");
+  sel.append(el("option", { value: "all" }, "Todos os países"));
+  [...new Set(evs.map(e => e.country))].forEach(c => {
+    const info = countryOf(c);
+    sel.append(el("option", { value: c || "none" }, `${info.flag} ${info.label}`));
+  });
+  sel.addEventListener("change", () => { state.country = sel.value; render(); });
+  $("search").addEventListener("input", ev => { state.search = ev.target.value; render(); });
+  $("v-quarter").addEventListener("click", () => { state.view = "quarter"; render(); });
+  $("v-months").addEventListener("click", () => { state.view = "months"; render(); });
+  $("v-cal").addEventListener("click", () => { state.view = "cal"; render(); });
+  $("tbd-toggle").addEventListener("click", () => { state.showTbd = !state.showTbd; render(); });
+  render();
+})();
+</script>
+</body>
+</html>
